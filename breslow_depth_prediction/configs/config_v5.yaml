@@ -1,0 +1,107 @@
+# Breslow Depth Prediction Configuration — v5 (expanded dataset)
+#
+# Changes from v3:
+#   - coords_file: breslow_depth_coords.csv -> breslow_depth_coords_210725.csv
+#     Adds 5 previously-unused samples (3 T4, 2 T2). Same exclusion list (10).
+#     Existing measurements are byte-identical between the two CSVs — the new
+#     file is a strict superset, not a re-measurement.
+#   - All other settings (architecture, encoder, image_size, batch_size,
+#     optimiser, augmentation, loss, split seed) held constant for a clean
+#     ablation against v3.
+#
+# Effective dataset (after exclusions):
+#   - V3: 72 valid samples -> 50 train / 11 val / 11 test
+#   - V5: 75 valid samples -> ~52 train / ~11 val / ~12 test (stratified by T-cat)
+
+# Data Configuration
+data:
+  data_dir: "../data"
+  images_dir: "ds_WSIs"
+  coords_file: "measurements/breslow_depth_coords_210725.csv"   # <- THE CHANGE
+  exclude_file: "measurements/wrong_dir_coords.txt"
+  image_suffix: "_image.png"
+  mask_suffix: "_labels.png"
+  resolution_um_per_pixel: 4.0
+  image_size: [768, 768]
+
+# Mask Class Mapping (RGB to class index)
+classes:
+  background: 0
+  tumour: 1
+  epidermis: 2
+  dermis: 3
+  num_classes: 4
+
+# Breslow Depth Thresholds (in micrometres)
+breslow_thresholds:
+  T1a_max: 800
+  T1b_max: 1000
+  T2_max: 2000
+  T3_max: 4000
+
+# Data Split (same seed/ratios as v1/v2/v3 — but the underlying sample list
+# is bigger, so the splits are different).
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 42
+  stratify: true
+
+# Training Configuration (matches v3, plus higher num_workers for GPU feed)
+training:
+  batch_size: 2
+  num_epochs: 100
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  early_stopping_patience: 20
+  num_workers: 2  # Match V3 (Windows default). Higher values caused
+                  # memory pressure + paging on 32GB RAM. Train workers
+                  # use persistent_workers=True (set in utils.py) so the
+                  # ~30s spawn cost is paid once, not every epoch.
+                  # Val/test loaders run in main process (num_workers=0).
+
+# Model Configuration (matches v3)
+model:
+  architecture: "UnetPlusPlus"
+  encoder: "efficientnet-b4"
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 4
+
+# Augmentation (matches v3)
+augmentation:
+  train:
+    horizontal_flip: true
+    vertical_flip: true
+    random_rotate_90: true
+    brightness_contrast:
+      brightness_limit: 0.2
+      contrast_limit: 0.2
+    hue_saturation:
+      hue_shift_limit: 10
+      sat_shift_limit: 20
+      val_shift_limit: 10
+    elastic_transform: true
+  val:
+    normalize_only: true
+
+# Loss Function (matches v3 — boundary loss + 3x epidermis weight)
+loss:
+  type: "combined"
+  dice_weight: 0.5
+  ce_weight: 0.4
+  boundary_weight: 0.1
+  class_weights: [0.05, 1.0, 3.0, 0.5]
+
+# Evaluation
+evaluation:
+  metrics: ["dice", "iou", "precision", "recall"]
+  breslow_mae_target: 500
+  inter_observer_var: 860
+
+# Paths
+paths:
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"
+  log_dir: "logs"

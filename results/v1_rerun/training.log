@@ -1,0 +1,21 @@
+2026-04-20 17:38:21,787 - INFO - Logging to <project_root>\logs\train_20260420_173821.log
+2026-04-20 17:38:21,787 - INFO - Project root: <project_root>
+2026-04-20 17:38:21,787 - INFO - Config: <project_root>\breslow_depth_prediction\configs\config.yaml
+2026-04-20 17:38:21,850 - INFO - Random seed: 42
+2026-04-20 17:38:21,908 - INFO - Device: cuda
+2026-04-20 17:38:21,912 - INFO - GPU: NVIDIA GeForce RTX 3080
+2026-04-20 17:38:21,912 - INFO - VRAM: 10.0 GB
+2026-04-20 17:38:21,915 - INFO - Creating dataloaders...
+2026-04-20 17:38:22,051 - INFO - Dataset: train=50, val=11, test=11
+2026-04-20 17:38:22,051 - INFO - Creating model...
+2026-04-20 17:38:22,653 - INFO - Total parameters: 20,813,548
+2026-04-20 17:38:22,653 - INFO - Trainable parameters: 20,813,548
+2026-04-20 17:38:22,654 - INFO - Optimizer: AdamW (lr=0.0001, weight_decay=0.0001)
+2026-04-20 17:38:22,655 - INFO - Scheduler: CosineAnnealingLR (T_max=100)
+2026-04-20 17:38:22,655 - INFO - Epochs: 100, Early stopping patience: 15
+2026-04-20 17:38:22,659 - INFO - Starting training...
+2026-04-20 18:29:33,125 - INFO - Training complete in 51.2 minutes
+2026-04-20 18:29:33,126 - INFO - Best validation Dice: 0.8776
+2026-04-20 18:29:33,126 - INFO - Best validation Loss: 0.5243
+2026-04-20 18:29:33,798 - INFO - Saved training history plot to <project_root>\results\training_history.png
+2026-04-20 18:29:33,799 - INFO - All results saved. Training complete!

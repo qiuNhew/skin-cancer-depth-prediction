@@ -1,0 +1,103 @@
+# Breslow Depth Prediction Configuration — v3 (boundary-loss ablation)
+#
+# Changes from v2:
+#   - Adds boundary_loss term (Kervadec MIDL 2019) to CombinedLoss to sharpen
+#     the epidermis boundary, which V2 still loses on thin/fragmented sections.
+#   - Loss weights rebalanced to make room for it:
+#       v2: dice 0.6 + ce 0.4
+#       v3: dice 0.5 + ce 0.4 + boundary 0.1   (sum still 1.0)
+#   - Boundary term inherits class_weights [0.05, 1.0, 3.0, 0.5], so the
+#     3× epidermis emphasis carries through to the boundary signal too.
+#   - Architecture, encoder, image_size, batch_size, optimiser, augmentation,
+#     split — all unchanged from v2 for a clean ablation.
+# Pair with --breslow-method perpendicular at evaluation time for the full V3
+# story (calculator + loss).
+
+# Data Configuration
+data:
+  data_dir: "../data"             # relative to project root — dataset lives one level up
+  images_dir: "ds_WSIs"
+  coords_file: "measurements/breslow_depth_coords.csv"
+  exclude_file: "measurements/wrong_dir_coords.txt"
+  image_suffix: "_image.png"
+  mask_suffix: "_labels.png"
+  resolution_um_per_pixel: 4.0
+  image_size: [768, 768]
+
+# Mask Class Mapping (RGB to class index)
+classes:
+  background: 0      # Black (0, 0, 0)
+  tumour: 1          # Blue (0, 0, 255)
+  epidermis: 2       # Green (0, 255, 0)
+  dermis: 3          # Red (255, 0, 0)
+  num_classes: 4
+
+# Breslow Depth Thresholds (in micrometres)
+breslow_thresholds:
+  T1a_max: 800
+  T1b_max: 1000
+  T2_max: 2000
+  T3_max: 4000
+
+# Data Split (MUST match v1/v2 — same seed, same ratios)
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 42
+  stratify: true
+
+# Training Configuration
+# batch_size dropped from V2's 3 -> 2 to free ~3 GB VRAM for desktop apps
+# (V3 also adds a boundary-loss SDT tensor that competes for memory).
+training:
+  batch_size: 2
+  num_epochs: 100
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  early_stopping_patience: 20
+
+# Model Configuration (identical to v2)
+model:
+  architecture: "UnetPlusPlus"
+  encoder: "efficientnet-b4"
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 4
+
+# Augmentation (identical to v2)
+augmentation:
+  train:
+    horizontal_flip: true
+    vertical_flip: true
+    random_rotate_90: true
+    brightness_contrast:
+      brightness_limit: 0.2
+      contrast_limit: 0.2
+    hue_saturation:
+      hue_shift_limit: 10
+      sat_shift_limit: 20
+      val_shift_limit: 10
+    elastic_transform: true
+  val:
+    normalize_only: true
+
+# Loss Function — V3 adds a boundary term on top of v2's Dice + CE.
+loss:
+  type: "combined"
+  dice_weight: 0.5
+  ce_weight: 0.4
+  boundary_weight: 0.1
+  class_weights: [0.05, 1.0, 3.0, 0.5]  # [bg, tumour, EPIDERMIS x3, dermis]
+
+# Evaluation
+evaluation:
+  metrics: ["dice", "iou", "precision", "recall"]
+  breslow_mae_target: 500
+  inter_observer_var: 860
+
+# Paths
+paths:
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"
+  log_dir: "logs"

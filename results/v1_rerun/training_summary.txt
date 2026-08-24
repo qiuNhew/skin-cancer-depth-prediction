@@ -1,0 +1,9 @@
+Training Summary
+==================================================
+Model: UnetPlusPlus
+Encoder: efficientnet-b4
+Epochs trained: 50
+Best val Dice: 0.8776
+Best val Loss: 0.5243
+Training time: 51.2 minutes
+Device: cuda

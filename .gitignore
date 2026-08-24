@@ -1,0 +1,85 @@
+# ---------------------------------------------------------------------------
+# Breslow Depth Prediction — .gitignore
+#
+# Sample identifiers in results/ are opaque Sample-NN labels (de-identified).
+# Do not commit raw slide imagery or per-sample artefacts to this repository.
+# ---------------------------------------------------------------------------
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Patient data (gitignored; symlink or copy local data into ./data/) ---
+data/
+breslow_depth_prediction/data/
+
+# --- Model checkpoints (>100 MB, derived from patient data) ---
+checkpoints/*.pth
+checkpoints/*.pt
+
+# --- Training / evaluation logs ---
+# Force-add specific ones when they matter for the SDR:
+#   git add -f logs/train_20260420_173821.log
+logs/*.log
+logs/archive/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Claude Code personal settings (keep project-wide settings.json tracked) ---
+.claude/settings.local.json
+
+# --- IDE / OS noise ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Office / Word / PowerPoint temp lock files ---
+~$*
+*.tmp
+
+# --- Demo / dry-run / scratch outputs (regenerable from predict_image.py) ---
+results/demo_*/
+results/scratch_*/
+
+# --- Patient-identifying artefacts in results/ -----------------------------
+# These contain pseudonymous patient identifiers and/or the
+# original H&E imagery, both governed by the Cirdan / QUB data-access
+# agreement. Aggregate plots (breslow_scatter.png, bland_altman.png,
+# t_category_confusion.png, dice_per_class.png, error_distribution.png) and
+# metrics.json contain no IDs and are NOT excluded — they remain trackable.
+results/**/visualisations/
+results/**/visualizations/
+results/**/per_sample_results.json
+results/**/evaluation_report.txt
+results/**/confidence_analysis.json
+results/**/confidence_analysis.txt
+
+# --- Legacy dev artefacts (pre-cleanup) ---
+breslow_depth_prediction/venv/
+breslow_depth_prediction/training.log
+
+# --- Ad-hoc helper scripts ---
+# One-off utilities used during analysis/debugging. Not part of the core
+# training/eval pipeline. Force-add (`git add -f`) if any is needed for the SDR.
+scripts/debug_loss.py
+breslow_depth_prediction/scripts/confidence_analysis.py
+breslow_depth_prediction/scripts/regenerate_targets.py

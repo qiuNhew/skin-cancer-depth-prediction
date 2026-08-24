@@ -1,0 +1,95 @@
+# Breslow Depth Prediction Configuration — v2 (improved epidermis segmentation)
+#
+# Changes from v1:
+#   - image_size: 512 -> 768  (more pixels for thin epidermis, RTX 3080 has headroom)
+#   - batch_size: 4 -> 3      (compensate for larger images)
+#   - class_weights: epidermis 1.0 -> 3.0, bg 0.1 -> 0.05  (force epidermis focus)
+#   - dice_weight: 0.5 -> 0.6  (Dice handles class imbalance better than CE)
+#   - early_stopping_patience: 15 -> 20  (more patience for slower convergence)
+#   - Added elastic transform for boundary-aware augmentation
+
+# Data Configuration
+data:
+  data_dir: "../data"             # relative to project root — dataset lives one level up
+  images_dir: "ds_WSIs"
+  coords_file: "measurements/breslow_depth_coords.csv"
+  exclude_file: "measurements/wrong_dir_coords.txt"
+  image_suffix: "_image.png"
+  mask_suffix: "_labels.png"
+  resolution_um_per_pixel: 4.0
+  image_size: [768, 768]
+
+# Mask Class Mapping (RGB to class index)
+classes:
+  background: 0      # Black (0, 0, 0)
+  tumour: 1          # Blue (0, 0, 255)
+  epidermis: 2       # Green (0, 255, 0)
+  dermis: 3          # Red (255, 0, 0)
+  num_classes: 4
+
+# Breslow Depth Thresholds (in micrometres)
+breslow_thresholds:
+  T1a_max: 800
+  T1b_max: 1000
+  T2_max: 2000
+  T3_max: 4000
+
+# Data Split (MUST match v1 for fair comparison — same seed and ratios)
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 42
+  stratify: true
+
+# Training Configuration
+training:
+  batch_size: 3
+  num_epochs: 100
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  early_stopping_patience: 20
+
+# Model Configuration
+model:
+  architecture: "UnetPlusPlus"
+  encoder: "efficientnet-b4"
+  encoder_weights: "imagenet"
+  in_channels: 3
+  classes: 4
+
+# Augmentation
+augmentation:
+  train:
+    horizontal_flip: true
+    vertical_flip: true
+    random_rotate_90: true
+    brightness_contrast:
+      brightness_limit: 0.2
+      contrast_limit: 0.2
+    hue_saturation:
+      hue_shift_limit: 10
+      sat_shift_limit: 20
+      val_shift_limit: 10
+    elastic_transform: true
+  val:
+    normalize_only: true
+
+# Loss Function
+loss:
+  type: "combined"
+  dice_weight: 0.6
+  ce_weight: 0.4
+  class_weights: [0.05, 1.0, 3.0, 0.5]  # [bg, tumour, EPIDERMIS x3, dermis]
+
+# Evaluation
+evaluation:
+  metrics: ["dice", "iou", "precision", "recall"]
+  breslow_mae_target: 500
+  inter_observer_var: 860
+
+# Paths
+paths:
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"
+  log_dir: "logs"

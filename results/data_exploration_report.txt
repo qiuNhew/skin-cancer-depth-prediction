@@ -1,0 +1,55 @@
+================================================================================
+BRESLOW DEPTH PREDICTION - DATA EXPLORATION REPORT
+================================================================================
+
+Dataset Location: <project_root>/data/ds_WSIs
+CSV File: <project_root>/data/measurements/breslow_depth_coords.csv
+
+DATASET INTEGRITY CHECK
+-----------------------
+Total image files found: 89
+Total mask files found: 89
+CSV entries: 82
+Excluded samples: 10 (from wrong_dir_coords.txt)
+Valid samples: 71
+
+BRESLOW DEPTH STATISTICS
+------------------------
+Using depth column: 'length_�m'
+Min: 48.85 �m (0.05 mm)
+Max: 52651.53 �m (52.65 mm)
+Mean: 10298.28 �m (10.30 mm)
+Std: 10489.11 �m
+
+T-CATEGORY DISTRIBUTION
+-----------------------
+T1a (< 0.8mm):     1 samples ( 1.41%)
+T1b (0.8-1.0mm):     0 samples ( 0.00%)
+T2 (1.0-2.0mm):     5 samples ( 7.04%)
+T3 (2.0-4.0mm):    17 samples (23.94%)
+T4 (> 4.0mm):    48 samples (67.61%)
+
+CLASS PIXEL DISTRIBUTION
+------------------------
+Processed 71 mask files
+Background: 47.2%
+Tumour: 39.5%
+Epidermis: 1.9%
+Dermis: 11.4%
+
+Suggested class weights: [np.float64(0.04), np.float64(0.05), np.float64(1.0), np.float64(0.17)]
+
+TRAIN/VAL/TEST SPLIT (Stratified)
+---------------------------------
+WARNING: Stratified split failed (The least populated classes in y have only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2. Classes with too few members are: ['T1a']), using simple split
+Train: 49 samples (69%)
+Val: 10 samples (14%)
+Test: 12 samples (17%)
+
+Split saved to: <project_root>/results/data_split.json
+
+Figures saved to: <project_root>/results/figures/exploration
+
+Figures saved to: <project_root>/results/figures/exploration
+
+================================================================================
